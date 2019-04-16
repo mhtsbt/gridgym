@@ -8,6 +8,8 @@ class FourRoomEnv(BaseEnv):
 
     metadata = {'render.modes': ['human']}
 
+    BOTTOM_RIGHT_GOAL_STATE = 154
+
     def __init__(self):
 
         # action-space
@@ -24,6 +26,8 @@ class FourRoomEnv(BaseEnv):
 
         self.grid = self._generate_simple_grid()
 
+        self.start_state = None
+        self.goal_state = None
         self.position = [1, 1]
         self.reset()
 
@@ -58,12 +62,17 @@ class FourRoomEnv(BaseEnv):
     def render(self, mode='human'):
         pass
 
-    def reset(self, start_state=None):
+    def reset(self, start_state=None, goal_state=None):
+
+        self.goal_state = goal_state
 
         if start_state is None:
-            self.position = [1, 1]
-        else:
-            self.position = self._state_to_position(start_state)
+            start_state = self._position_to_state([1, 1])
+
+        self.position = self._state_to_position(start_state)
+
+        # keep track of the start state
+        self.start_state = start_state
 
         if self.grid[self.position[0]][self.position[1]] == self.WALL_TILE:
             raise ValueError('starting position is a non-valid position')
@@ -75,6 +84,9 @@ class FourRoomEnv(BaseEnv):
         action_pos = self._action_set[action]
         new_position = np.add(self.position, action_pos)
 
+        reward = 0
+        done = False
+
         try:
             if self.grid[new_position[0]][new_position[1]] is self.FREE_TILE:
                 self.position = new_position
@@ -82,4 +94,11 @@ class FourRoomEnv(BaseEnv):
             # position out or range
             self.position = self.position
 
-        return self._position_to_state(self.position), 0, False, {}
+        result_state = self._position_to_state(self.position)
+
+        # give reward to agent (sparse, only on reaching the goal)
+        if result_state == self.goal_state:
+            done = True
+            reward = 1
+
+        return result_state, reward, done, {}
