@@ -10,7 +10,6 @@ class FourRoomEnv(BaseEnv):
 
     def __init__(self, room_size=5):
 
-        self.BOTTOM_RIGHT_GOAL_STATE = None
         self.room_size = room_size
         self.grid_size = 0
         self.states_count = 0
@@ -28,11 +27,14 @@ class FourRoomEnv(BaseEnv):
         self.position = [1, 1]
         self.reset()
 
+    def get_goal(self, v='bottom', h='right'):
+        # return interesting goal positions
+        # for now return bottom right, TODO: other goals
+        end_pos = self.room_size * 2 + 1
+        return self._position_to_state([end_pos, end_pos])
+
     def set_room_size(self, room_size):
         self.room_size = room_size
-        self.BOTTOM_RIGHT_GOAL_STATE = self._position_to_state([room_size * 2 + 1, room_size * 2 + 1])
-        print(self.BOTTOM_RIGHT_GOAL_STATE)
-
         self.grid_size = self.room_size * 2 + 3
         self.states_count = self.grid_size ** 2
         self.observation_space = Discrete(self.states_count)
