@@ -4,14 +4,13 @@ import numpy as np
 from gridgym.envs.envbase import BaseEnv
 
 
-class FourRoomEnv(BaseEnv):
+class GridworldEnv(BaseEnv):
 
     metadata = {'render.modes': ['human']}
 
     def __init__(self):
 
-        self.room_size = 5
-        self.grid_size = 0
+        self.grid_size = 10
         self.states_count = 0
         self.grid = None
         self.state_visitation = None
@@ -21,7 +20,7 @@ class FourRoomEnv(BaseEnv):
         self._action_meaning = ["^", "<", "v", ">"]
         self.action_space = Discrete(len(self._action_set))
 
-        self.set_room_size(self.room_size)
+        self.set_grid_size(self.grid_size)
 
         self.start_state = None
         self.goal_state = None
@@ -31,16 +30,14 @@ class FourRoomEnv(BaseEnv):
     def get_goal(self, v='bottom', h='right'):
         # return interesting goal positions
         # for now return bottom right, TODO: other goals
-        end_pos = self.room_size * 2 + 1
-        return self._position_to_state([end_pos, end_pos])
+        return self.states_count-1
 
-    def set_room_size(self, room_size):
-        self.room_size = room_size
-        self.grid_size = self.room_size * 2 + 3
+    def set_grid_size(self, grid_size):
+        self.grid_size = grid_size
         self.states_count = self.grid_size ** 2
         self.observation_space = Discrete(self.states_count)
 
-        self.grid = self._generate_simple_grid()
+        self.grid = np.zeros(shape=(self.grid_size, self.grid_size))
         self.reset_visitation()
 
     def reset_visitation(self):
@@ -48,34 +45,6 @@ class FourRoomEnv(BaseEnv):
 
     def get_visitation_map(self):
         return np.reshape(self.state_visitation, newshape=(self.grid_size, self.grid_size))
-
-    def _generate_simple_grid(self):
-        grid = []
-        total_size = self.room_size * 2 + 3
-        door_position = math.ceil(self.room_size / 2)
-
-        for index in range(total_size):
-            if index == 0 or index == total_size - 1:
-                grid.append([1] * total_size)
-            else:
-                row = [0] * total_size
-                row[0] = self.WALL_TILE
-                row[-1] = self.WALL_TILE
-                row[self.room_size + 1] = self.WALL_TILE
-
-                if index == self.room_size + 1:
-                    row = [1] * total_size
-
-                if index == door_position or index == total_size - door_position - 1:
-                    row[self.room_size + 1] = self.FREE_TILE
-                    row[self.room_size + 1] = self.FREE_TILE
-
-                row[door_position] = self.FREE_TILE
-                row[-door_position - 1] = self.FREE_TILE
-
-                grid.append(row)
-
-        return grid
 
     def render(self, mode='human'):
         pass
