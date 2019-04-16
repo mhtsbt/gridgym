@@ -18,7 +18,7 @@ class MazeEnv(BaseEnv):
 
         self.grid_size = 39
         self.states_count = self.grid_size ** 2
-        self.observation_space = Discrete(len(self.states_count))
+        self.observation_space = Discrete(self.states_count)
 
         self.grid = self._generate_complex_grid(
             width=self.grid_size, height=self.grid_size)

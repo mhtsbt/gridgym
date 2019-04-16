@@ -20,7 +20,7 @@ class FourRoomEnv(BaseEnv):
         #  derived properties
         self.grid_size = self.room_size * 2 + 3
         self.states_count = self.grid_size ** 2
-        self.observation_space = Discrete(len(self.states_count))
+        self.observation_space = Discrete(self.states_count)
 
         self.grid = self._generate_simple_grid()
 
