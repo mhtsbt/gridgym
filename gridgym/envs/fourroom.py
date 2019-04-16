@@ -10,28 +10,33 @@ class FourRoomEnv(BaseEnv):
 
     def __init__(self, room_size=5):
 
+        self.BOTTOM_RIGHT_GOAL_STATE = None
         self.room_size = room_size
-
-        self.BOTTOM_RIGHT_GOAL_STATE = self._position_to_state([room_size*2+1, room_size*2+1])
+        self.grid_size = 0
+        self.states_count = 0
+        self.grid = None
 
         # action-space
         self._action_set = [[-1, 0], [0, -1], [1, 0], [0, 1]]
         self._action_meaning = ["^", "<", "v", ">"]
         self.action_space = Discrete(len(self._action_set))
 
-
-
-        #  derived properties
-        self.grid_size = self.room_size * 2 + 3
-        self.states_count = self.grid_size ** 2
-        self.observation_space = Discrete(self.states_count)
-
-        self.grid = self._generate_simple_grid()
+        self.set_room_size(room_size)
 
         self.start_state = None
         self.goal_state = None
         self.position = [1, 1]
         self.reset()
+
+    def set_room_size(self, room_size):
+        self.room_size = room_size
+        self.BOTTOM_RIGHT_GOAL_STATE = self._position_to_state([room_size * 2 + 1, room_size * 2 + 1])
+
+        self.grid_size = self.room_size * 2 + 3
+        self.states_count = self.grid_size ** 2
+        self.observation_space = Discrete(self.states_count)
+
+        self.grid = self._generate_simple_grid()
 
     def _generate_simple_grid(self):
         grid = []
