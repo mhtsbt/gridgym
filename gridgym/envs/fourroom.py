@@ -31,6 +31,7 @@ class FourRoomEnv(BaseEnv):
     def set_room_size(self, room_size):
         self.room_size = room_size
         self.BOTTOM_RIGHT_GOAL_STATE = self._position_to_state([room_size * 2 + 1, room_size * 2 + 1])
+        print(self.BOTTOM_RIGHT_GOAL_STATE)
 
         self.grid_size = self.room_size * 2 + 3
         self.states_count = self.grid_size ** 2
