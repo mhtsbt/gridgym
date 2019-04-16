@@ -8,16 +8,18 @@ class FourRoomEnv(BaseEnv):
 
     metadata = {'render.modes': ['human']}
 
-    BOTTOM_RIGHT_GOAL_STATE = 154
+    def __init__(self, room_size=5):
 
-    def __init__(self):
+        self.room_size = room_size
+
+        self.BOTTOM_RIGHT_GOAL_STATE = self._position_to_state([room_size*2+1, room_size*2+1])
 
         # action-space
         self._action_set = [[-1, 0], [0, -1], [1, 0], [0, 1]]
         self._action_meaning = ["^", "<", "v", ">"]
         self.action_space = Discrete(len(self._action_set))
 
-        self.room_size = 5
+
 
         #  derived properties
         self.grid_size = self.room_size * 2 + 3
