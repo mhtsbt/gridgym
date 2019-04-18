@@ -26,18 +26,45 @@ class GridworldEnv(BaseEnv):
         self.goal_state = None
         self.position = [1, 1]
         self.reset()
+        self.reward_sys = 'sparse'
+
+    def set_reward_sys(self, t='dense'):
+        """
+        Change the way rewards are received
+        :t the type of rewards to expect, could be sparse (only when reaching the goal rewards are observed)
+        or dense (on each timestep a reward can be observed)
+        """
+
+        if t not in ['dense', 'sparse']:
+            raise Exception("Unsupported reward system specified")
+
+        self.reward_sys = t
 
     def get_goal(self, v='bottom', h='right'):
         # return interesting goal positions
         # for now return bottom right, TODO: other goals
-        return self.states_count-1
+        return self.states_count-self.grid_size-2
 
     def set_grid_size(self, grid_size):
         self.grid_size = grid_size
         self.states_count = self.grid_size ** 2
         self.observation_space = Discrete(self.states_count)
 
-        self.grid = np.zeros(shape=(self.grid_size, self.grid_size))
+        self.grid = []
+
+        # fill the grid with FREE_TILES
+        for row in range(self.grid_size):
+
+            new_row = [self.FREE_TILE] * self.grid_size
+            new_row[0] = self.WALL_TILE
+            new_row[-1] = self.WALL_TILE
+
+            self.grid.append(new_row)
+
+        # make the first and last rows complete walls
+        self.grid[0] = [self.WALL_TILE] * self.grid_size
+        self.grid[-1] = [self.WALL_TILE] * self.grid_size
+
         self.reset_visitation()
 
     def reset_visitation(self):
@@ -66,6 +93,37 @@ class GridworldEnv(BaseEnv):
 
         return self._position_to_state(self.position)
 
+    def _get_sparse_reward(self, state):
+        done = False
+        reward = 0
+
+        # give reward to agent (sparse, only on reaching the goal)
+        if state == self.goal_state:
+            done = True
+            reward = 1
+
+        return reward, done
+
+    def _get_dense_reward(self, state):
+        done = (state == self.goal_state)
+
+        current_pos = np.array(self._state_to_position(state))
+        goal_pos = np.array(self._state_to_position(self.goal_state))
+
+        max_distance = np.linalg.norm(-goal_pos)
+        distance = np.linalg.norm(goal_pos-current_pos)
+
+        reward = round(1-distance/max_distance, 3)
+
+        return reward, done
+
+    def _get_reward(self, state):
+
+        if self.reward_sys == "dense":
+            return self._get_dense_reward(state=state)
+        else:
+            return self._get_sparse_reward(state=state)
+
     def step(self, action):
 
         action_pos = self._action_set[action]
@@ -83,10 +141,7 @@ class GridworldEnv(BaseEnv):
 
         result_state = self._position_to_state(self.position)
 
-        # give reward to agent (sparse, only on reaching the goal)
-        if result_state == self.goal_state:
-            done = True
-            reward = 1
+        reward, done = self._get_reward(state=result_state)
 
         # keep track of visit
         self.state_visitation[result_state] += 1

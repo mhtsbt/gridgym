@@ -106,7 +106,7 @@ class FourRoomEnv(BaseEnv):
         done = False
 
         try:
-            if self.grid[new_position[0]][new_position[1]] is self.FREE_TILE:
+            if self.grid[new_position[0]][new_position[1]] == self.FREE_TILE:
                 self.position = new_position
         except:
             # position out or range
